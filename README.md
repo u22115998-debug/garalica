@@ -2,7 +2,7 @@
 
 A modern issue tracker built with React, FastAPI, PostgreSQL, and Docker.
 
-![banner](image.png)
+![alt text](image.png)
 
 ## Quick Start
 
