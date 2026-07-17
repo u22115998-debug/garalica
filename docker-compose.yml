@@ -1,13 +1,14 @@
 services:
   db:
     image: postgres:16-alpine
+    container_name: garalica-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - garalica-pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -17,6 +18,7 @@ services:
   backend:
     build:
       context: ./backend
+    container_name: garalica-backend
     restart: unless-stopped
     depends_on:
       db:
@@ -34,20 +36,22 @@ services:
       MAX_VIDEO_SIZE: ${MAX_VIDEO_SIZE}
       RESEND_API_KEY: ${RESEND_API_KEY}
     volumes:
-      - uploads:/app/uploads
+      - garalica-uploads:/app/uploads
 
   frontend:
     build:
       context: ./frontend
+    container_name: garalica-frontend
     restart: unless-stopped
     depends_on:
       - backend
 
   nginx:
     image: nginx:alpine
+    container_name: garalica-nginx
     restart: unless-stopped
     ports:
-      - "7605:80"
+      - "7606:80"
     depends_on:
       - backend
       - frontend
@@ -55,5 +59,5 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
 
 volumes:
-  pgdata:
-  uploads:
+  garalica-pgdata:
+  garalica-uploads:

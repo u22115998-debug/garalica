@@ -14,7 +14,7 @@ from app.config import get_settings
 router = APIRouter(prefix="/api", tags=["uploads"])
 
 ALLOWED_IMAGE_TYPES = {
-    "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"
+    "image/jpeg", "image/png", "image/gif", "image/webp"
 }
 ALLOWED_VIDEO_TYPES = {
     "video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"

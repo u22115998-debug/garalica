@@ -102,7 +102,7 @@ Nginx routes `/api/` and `/uploads/` to the backend and serves the React build f
 ### Attachments
 
 - Upload images and videos to an issue
-- Images: JPEG, PNG, GIF, WebP, SVG
+- Images: JPEG, PNG, GIF, WebP
 - Videos: MP4, WebM, QuickTime, AVI
 - Size limits configurable via `MAX_IMAGE_SIZE` and `MAX_VIDEO_SIZE`
 - Files stored on disk under `/app/uploads/{ISSUE_KEY}/`
