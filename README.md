@@ -1,6 +1,6 @@
-# bugs.garakrral.com — Issue Tracker
+# Garalica — Issue Tracker 
 
-A clean, modern issue tracker inspired by Google's design language. Built with React, FastAPI, PostgreSQL, and Docker.
+A clean, modern issue tracker inspired by Google's design language. Built with React, FastAPI, PostgreSQL, and Docker. Using by [GaraKrral bugs](bugs.garakrral.com)
 
 ## Quick Start
 
@@ -26,9 +26,9 @@ docker compose up -d --build
 ```
 
 The admin account will be automatically created on first startup:
-- **Username:** GaraKrral
-- **Email:** admin@garakrral.com
-- **Password:** change-me (set in `.env`)
+- **Username:** admin
+- **Email:** admin@example.com
+- **Password:** your_password (set in `.env`)
 
 ### Deploy to Server
 
@@ -84,6 +84,4 @@ The admin account will be automatically created on first startup:
 | POST | `/api/issues/{key}/attachments` | Upload file |
 | GET | `/api/health` | Health check |
 
-## License
 
-Private — GaraKrral
