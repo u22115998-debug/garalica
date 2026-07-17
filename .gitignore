@@ -1,0 +1,74 @@
+# ── Environment / secrets ─────────────────────────────
+.env
+.env.*
+.env.local
+!.env.example
+
+# Alt-dizinlerdeki env dosyaları (backend/.env, frontend/.env vb.)
+**/.env
+**/.env.*
+**/.env.local
+!**/.env.example
+
+# ── Python ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+installs/
+
+# ── Node / Frontend ──────────────────────────────────
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vite/
+*.tsbuildinfo
+
+# ── Uploads & runtime data ───────────────────────────
+# Kullanıcı yüklemeleri repoya asla girmemeli
+uploads/
+**/uploads/*
+!**/uploads/.gitkeep
+
+# Docker volume'ları (host'a bağlanırsa bile)
+pgdata/
+*.sqlite3
+*.db
+
+# ── IDE / Editörler ──────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sln
+*.sw?
+
+# ── OS ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ─────────────────────────────────────────────
+*.log
+logs/
+
+# ── Docker / Deploy artefaktları ─────────────────────
+*.tar.gz
+*.tar
+*.zip
+
+# ── Geçici / yedek dosyalar ───────────────────────────
+*.bak
+*.tmp
+*.orig
+*~
