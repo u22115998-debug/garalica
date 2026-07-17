@@ -1,4 +1,4 @@
-# bugs.garakrral.com
+# Garalica
 
 A modern issue tracker built with React, FastAPI, PostgreSQL, and Docker.
 
