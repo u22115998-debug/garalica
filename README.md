@@ -1,6 +1,6 @@
 # Garalica — Issue Tracker 
 
-A clean, modern issue tracker inspired by Google's design language. Built with React, FastAPI, PostgreSQL, and Docker. Using by [GaraKrral bugs](bugs.garakrral.com)
+A clean, modern issue tracker inspired by Google's design language. Built with React, FastAPI, PostgreSQL, and Docker. Using by [GaraKrral bugs](https://bugs.garakrral.com)
 
 ## Quick Start
 
