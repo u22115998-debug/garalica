@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="GaraKrral Bug Tracker",
     description="A clean, modern issue tracker",
-    version="1.0.0",
+    version="2026.8392.03",
     lifespan=lifespan,
 )
 
@@ -62,4 +62,4 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "bugs.garakrral.com"}
+    return {"status": "ok", "service": "garalica"}
