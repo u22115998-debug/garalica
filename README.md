@@ -8,37 +8,45 @@ A modern issue tracker built with React, FastAPI, PostgreSQL, and Docker.
 
 ### Requirements
 
-- Docker and Docker Compose
-- Node.js 20+ and Python 3.12+ for local development only
+- Docker
+- Docker Compose
 
-### Run with Docker
+### Install
+
+Clone the repository:
+
+```bash
+git clone https://github.com/Garalica/garalica.git
+cd garalica
+```
+
+Download the latest Docker images:
+
+```bash
+docker pull ghcr.io/garalica/garalica-backend:latest
+docker pull ghcr.io/garalica/garalica-frontend:latest
+```
+
+Create the configuration file:
 
 ```bash
 cp .env.example .env
 nano .env
-docker compose up -d --build
 ```
 
-The admin account is created automatically on first startup using the values in `.env`.
-
-### Local Development
-
-Backend:
+Start Garalica:
 
 ```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+docker compose up -d
 ```
 
-Frontend:
+Open:
 
-```bash
-cd frontend
-npm install
-npm run dev
 ```
+http://localhost:7605
+```
+
+The admin account is created automatically on the first startup using the values in `.env`.
 
 ### Deployment
 

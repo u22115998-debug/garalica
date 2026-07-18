@@ -88,6 +88,7 @@ if (Test-Path $archivePath) {
 }
 
 try {
+  
   Invoke-Step -Label "Creating archive $archivePath" -Action {
     Push-Location $projectRoot
     try {

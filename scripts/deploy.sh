@@ -89,7 +89,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# GHCR akışında sunucuya kaynak kod değil, sadece deploy için gerekli dosyalar gider.
 items_to_archive=(
   "docker-compose.yml"
   ".env.example"
