@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, desc, asc
+from sqlalchemy import func, desc, asc, case
 
 from app.database import get_db
 from app.models import (
@@ -84,7 +84,20 @@ def list_issues(
     }.get(sort_by, Issue.created_at)
 
     direction = desc if sort_dir == "desc" else asc
-    query = query.order_by(direction(sort_col))
+
+    # When no status filter is set, keep open/in_progress issues above
+    # resolved/closed ones, then apply the user-selected sort within each group.
+    if not status_filter:
+        status_order = case(
+            (Issue.status == IssueStatus.OPEN, 0),
+            (Issue.status == IssueStatus.IN_PROGRESS, 1),
+            (Issue.status == IssueStatus.RESOLVED, 2),
+            (Issue.status == IssueStatus.CLOSED, 3),
+            else_=4,
+        )
+        query = query.order_by(asc(status_order), direction(sort_col))
+    else:
+        query = query.order_by(direction(sort_col))
 
     # Pagination
     offset = (page - 1) * page_size

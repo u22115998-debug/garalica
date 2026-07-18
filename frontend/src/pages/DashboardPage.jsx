@@ -184,7 +184,11 @@ export default function DashboardPage({ searchQuery }) {
       <aside className="sidebar">
         <div className="sidebar-header">
           <h2>
-            {reporterFilter ? 'My Issues' : 'Open Issues'}
+            {reporterFilter
+              ? 'My Issues'
+              : statusFilter
+                ? STATUS_FILTERS.find((f) => f.value === statusFilter)?.label || 'Issues'
+                : 'All Issues'}
             <span style={{ fontWeight: 400, color: 'var(--color-text-tertiary)', marginLeft: 8 }}>
               {total}
             </span>

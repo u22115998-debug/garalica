@@ -58,15 +58,13 @@ if ([string]::IsNullOrWhiteSpace($safeSessionBase)) {
 $tmuxSessionName = "$safeSessionBase-$runId"
 $archiveName = "bugs-garakrral-deploy-$runId.tar.gz"
 $archivePath = Join-Path $env:TEMP $archiveName
-$remoteDeployScriptName = "bugs-deploy-$runId.sh"
-$deployScriptPath = Join-Path $env:TEMP $remoteDeployScriptName
+$deployScriptName = "bugs-deploy-$runId.sh"
+$deployScriptPath = Join-Path $env:TEMP $deployScriptName
 
 $itemsToArchive = @(
   "docker-compose.yml",
   ".env.example",
   "README.md",
-  "backend",
-  "frontend",
   "nginx"
 )
 
@@ -75,7 +73,6 @@ if ($IncludeEnv) {
   if (-not (Test-Path $envPath)) {
     throw ".env not found. Remove -IncludeEnv or create .env first."
   }
-
   $itemsToArchive += ".env"
 }
 
@@ -90,24 +87,11 @@ if (Test-Path $archivePath) {
   Remove-Item -LiteralPath $archivePath -Force
 }
 
-$tarArgs = @(
-  "-czf", $archivePath,
-  "--exclude=backend/.env",
-  "--exclude=backend/.env.*",
-  "--exclude=backend/__pycache__",
-  "--exclude=backend/.pytest_cache",
-  "--exclude=frontend/.env",
-  "--exclude=frontend/.env.*",
-  "--exclude=frontend/node_modules",
-  "--exclude=frontend/build",
-  "--exclude=frontend/dist"
-) + $itemsToArchive
-
 try {
   Invoke-Step -Label "Creating archive $archivePath" -Action {
     Push-Location $projectRoot
     try {
-      & tar @tarArgs
+      & tar -czf $archivePath @itemsToArchive
       if ($LASTEXITCODE -ne 0) {
         throw "tar failed with exit code $LASTEXITCODE"
       }
@@ -120,7 +104,8 @@ try {
   $remoteTarget = "$User@$ServerHost"
   $remoteArchive = "/tmp/$archiveName"
   $remoteLog = "$RemoteDir/deploy-$runId.log"
-  $remoteDeployScript = "/tmp/$remoteDeployScriptName"
+  $remoteDeployScript = "/tmp/$deployScriptName"
+
   $attachCommand = "ssh -p $Port $remoteTarget `"tmux attach -t $tmuxSessionName`""
   $logsCommand = "ssh -p $Port $remoteTarget `"tail -f $remoteLog`""
 
@@ -135,7 +120,7 @@ try {
 
   $deployScriptTemplate = @'
 #!/usr/bin/env bash
-set -uo pipefail
+set -euo pipefail
 
 REMOTE_DIR=__REMOTE_DIR__
 REMOTE_ARCHIVE=__REMOTE_ARCHIVE__
@@ -147,7 +132,6 @@ touch "$REMOTE_LOG"
 exec > >(tee -a "$REMOTE_LOG") 2>&1
 
 status=0
-
 (
   set -e
   echo "Starting deploy at $(date -Is)"
@@ -157,17 +141,23 @@ status=0
   cd "$REMOTE_DIR"
 
   if docker compose version >/dev/null 2>&1; then
-    COMPOSE_CMD="docker compose"
+    COMPOSE_CMD=(docker compose)
   elif command -v docker-compose >/dev/null 2>&1; then
-    COMPOSE_CMD="docker-compose"
+    COMPOSE_CMD=(docker-compose)
   else
     echo "docker compose not found" >&2
     exit 1
   fi
 
-  $COMPOSE_CMD build --progress=plain
-  $COMPOSE_CMD up -d --remove-orphans
-  $COMPOSE_CMD ps
+  echo "Pulling latest images..."
+  "${COMPOSE_CMD[@]}" pull
+
+  echo "Starting containers..."
+  "${COMPOSE_CMD[@]}" up -d --remove-orphans
+
+  echo "Current status:"
+  "${COMPOSE_CMD[@]}" ps
+
   echo "Deployment command finished at $(date -Is)"
 ) || status=$?
 
@@ -201,8 +191,8 @@ exec bash
     "set -eu"
     "command -v tmux >/dev/null 2>&1 || { echo 'tmux not found. Install tmux on the server first.' >&2; exit 1; }"
     "command -v bash >/dev/null 2>&1 || { echo 'bash not found. Install bash on the server first.' >&2; exit 1; }"
-    "mkdir -p $remoteDirQ"
-    "touch $remoteLogQ"
+    "mkdir -p $(ConvertTo-ShSingleQuoted $RemoteDir)"
+    "touch $(ConvertTo-ShSingleQuoted $remoteLog)"
     "echo 'Cleaning old tmux sessions matching: $safeSessionBase-*'"
     $cleanupCommand
     "tmux has-session -t $tmuxSessionQ 2>/dev/null && { echo 'tmux session already exists: $tmuxSessionName' >&2; exit 1; } || true"
@@ -210,15 +200,15 @@ exec bash
     "tmux new-session -d -s $tmuxSessionQ $(ConvertTo-ShSingleQuoted $tmuxRunCommand)"
     "echo 'Started tmux session: $tmuxSessionName'"
     "echo 'Log file: $remoteLog'"
-    "echo $(ConvertTo-ShSingleQuoted "tmux started. You can safely disconnect from SSH if needed.")"
-    "echo $(ConvertTo-ShSingleQuoted "Reconnect command: $attachCommand")"
-    "echo $(ConvertTo-ShSingleQuoted "Live logs command: $logsCommand")"
+    "echo 'tmux started. You can safely disconnect from SSH if needed.'"
+    "echo 'Reconnect command: $attachCommand'"
+    "echo 'Live logs command: $logsCommand'"
   ) -join "; "
 
   if ($DryRun) {
     Write-Host "DRY RUN"
-    Write-Host "scp -P $Port `"$archivePath`" `"${remoteTarget}:$remoteArchive`""
-    Write-Host "scp -P $Port `"$deployScriptPath`" `"${remoteTarget}:$remoteDeployScript`""
+    Write-Host "scp -O -P $Port `"$archivePath`" `"${remoteTarget}:$remoteArchive`""
+    Write-Host "scp -O -P $Port `"$deployScriptPath`" `"${remoteTarget}:$remoteDeployScript`""
     Write-Host "ssh -p $Port `"$remoteTarget`" `"$remoteCommand`""
     Write-Host "tmux started. You can safely disconnect from SSH if needed."
     Write-Host "Reconnect command: $attachCommand"

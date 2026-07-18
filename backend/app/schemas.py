@@ -3,8 +3,6 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 
-# ── Auth ───────────────────────────────────────────────
-
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=64)
     email: EmailStr
@@ -30,8 +28,6 @@ class RefreshRequest(BaseModel):
 class VerifyEmailRequest(BaseModel):
     code: str = Field(..., min_length=6, max_length=6)
 
-
-# ── User ───────────────────────────────────────────────
 
 class UserOut(BaseModel):
     id: str
@@ -75,8 +71,6 @@ class ProfileUpdate(BaseModel):
     github_url: Optional[str] = Field(None, max_length=512)
     twitter_url: Optional[str] = Field(None, max_length=512)
 
-
-# ── Issue ──────────────────────────────────────────────
 
 class IssueCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=512)

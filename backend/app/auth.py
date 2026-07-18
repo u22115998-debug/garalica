@@ -16,8 +16,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
 
 
-# ── Password helpers ───────────────────────────────────
-
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
@@ -26,7 +24,6 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-# ── JWT helpers ────────────────────────────────────────
 
 def create_access_token(user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -50,8 +47,6 @@ def decode_token(token: str) -> dict:
             detail="Invalid or expired token",
         )
 
-
-# ── Dependencies ───────────────────────────────────────
 
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),

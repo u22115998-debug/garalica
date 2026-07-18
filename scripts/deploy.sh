@@ -39,8 +39,7 @@ require_cmd() {
 }
 
 shell_quote() {
-  # Print a POSIX-safe single-quoted string.
-  # shellcheck disable=SC1003
+  # POSIX-safe single-quoted string
   printf "'%s'" "${1//\'/\'\\\'\'}"
 }
 
@@ -68,6 +67,7 @@ require_cmd mktemp
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
+
 SAFE_SESSION_BASE="$(printf '%s' "$TMUX_SESSION" | tr -cd 'A-Za-z0-9_.-' | sed 's/^-\+//; s/-\+$//')"
 [[ -n "$SAFE_SESSION_BASE" ]] || SAFE_SESSION_BASE="bugs-deploy"
 
@@ -89,12 +89,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# GHCR akışında sunucuya kaynak kod değil, sadece deploy için gerekli dosyalar gider.
 items_to_archive=(
   "docker-compose.yml"
   ".env.example"
   "README.md"
-  "backend"
-  "frontend"
   "nginx"
 )
 
@@ -110,17 +109,7 @@ done
 log "Creating archive $ARCHIVE_PATH"
 (
   cd "$PROJECT_ROOT"
-  tar -czf "$ARCHIVE_PATH" \
-    --exclude=backend/.env \
-    --exclude=backend/.env.* \
-    --exclude=backend/__pycache__ \
-    --exclude=backend/.pytest_cache \
-    --exclude=frontend/.env \
-    --exclude=frontend/.env.* \
-    --exclude=frontend/node_modules \
-    --exclude=frontend/build \
-    --exclude=frontend/dist \
-    "${items_to_archive[@]}"
+  tar -czf "$ARCHIVE_PATH" "${items_to_archive[@]}"
 )
 
 REMOTE_DIR_Q=$(shell_quote "$REMOTE_DIR")
@@ -139,7 +128,7 @@ REMOTE_ARCHIVE=${REMOTE_ARCHIVE_Q}
 REMOTE_LOG=${REMOTE_LOG_Q}
 TMUX_SESSION=${TMUX_SESSION_Q}
 
-mkdir -p "\$(dirname \"\$REMOTE_LOG\")"
+mkdir -p "\$(dirname "\$REMOTE_LOG")"
 touch "\$REMOTE_LOG"
 exec > >(tee -a "\$REMOTE_LOG") 2>&1
 
@@ -147,6 +136,7 @@ status=0
 (
   set -e
   echo "Starting deploy at \$(date -Is)"
+
   mkdir -p "\$REMOTE_DIR"
   tar -xzf "\$REMOTE_ARCHIVE" -C "\$REMOTE_DIR"
   rm -f "\$REMOTE_ARCHIVE"
@@ -161,9 +151,15 @@ status=0
     exit 1
   fi
 
-  "\${COMPOSE_CMD[@]}" build --progress=plain
+  echo "Pulling latest images..."
+  "\${COMPOSE_CMD[@]}" pull
+
+  echo "Starting containers..."
   "\${COMPOSE_CMD[@]}" up -d --remove-orphans
+
+  echo "Current status:"
   "\${COMPOSE_CMD[@]}" ps
+
   echo "Deployment command finished at \$(date -Is)"
 ) || status=\$?
 
@@ -180,19 +176,25 @@ echo "This tmux session will stay open; type exit to close it."
 rm -f "\$0" 2>/dev/null || true
 exec bash
 EOF
+
 chmod +x "$DEPLOY_SCRIPT_PATH"
 
 REMOTE_COMMAND=$(cat <<EOF
 set -eu
 command -v tmux >/dev/null 2>&1 || { echo 'tmux not found. Install tmux on the server first.' >&2; exit 1; }
 command -v bash >/dev/null 2>&1 || { echo 'bash not found. Install bash on the server first.' >&2; exit 1; }
+
 mkdir -p $(shell_quote "$REMOTE_DIR")
 touch $(shell_quote "$REMOTE_LOG")
+
 echo 'Cleaning old tmux sessions matching: ${SAFE_SESSION_BASE}-*'
 tmux list-sessions -F '#S' 2>/dev/null | grep -E ${CLEANUP_PATTERN_Q} | xargs -r -I{} tmux kill-session -t '{}' || true
+
 tmux has-session -t ${TMUX_SESSION_Q} 2>/dev/null && { echo 'tmux session already exists: ${TMUX_SESSION_NAME}' >&2; exit 1; } || true
+
 chmod +x $(shell_quote "$REMOTE_DEPLOY_SCRIPT")
 tmux new-session -d -s ${TMUX_SESSION_Q} $(shell_quote "bash ${REMOTE_DEPLOY_SCRIPT}")
+
 echo 'Started tmux session: ${TMUX_SESSION_NAME}'
 echo 'Log file: ${REMOTE_LOG}'
 echo 'tmux started. You can safely disconnect from SSH if needed.'

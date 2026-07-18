@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create tables and seed admin
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     logger.info("Seeding admin user...")
